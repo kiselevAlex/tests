@@ -1,9 +1,9 @@
 version: 2.1
 
-npm_cache_key: &npm_cache_key
-    v1-dependency-npm-{{ checksum "package.json" }}
-npm_backup_cache_key: &npm_backup_cache_key
-    v1-dependency-npm
+yarn_cache_key: &yarn_cache_key
+    v1-dependency-yarn-{{ checksum "package.json" }}
+yarn_backup_cache_key: &yarn_backup_cache_key
+    v1-dependency-yarn
 
 restore_repo: &restore_repo
     restore_cache:
@@ -15,8 +15,8 @@ restore_repo: &restore_repo
 restore_node_modules: &restore_node_modules
     restore_cache:
       keys:
-        - *npm_cache_key
-        - *npm_backup_cache_key
+        - *yarn_cache_key
+        - *yarn_backup_cache_key
 
 jobs:
     checkout_code:
@@ -29,14 +29,15 @@ jobs:
                 key: v1-repo-{{ .Branch }}-{{ .Revision }}
                 paths:
                     - .
-    npm_bower_dependencies:
+    yarn_install:
         docker:
             - image: node:12.16.1
         steps:
             - *restore_repo
+            - *restore_node_modules
             - run: yarn
             - save_cache:
-                key: *npm_cache_key
+                key: *yarn_cache_key
                 paths:
                     - /root/project/node_modules
     test:
@@ -51,10 +52,10 @@ workflows:
     install_and_test:
         jobs:
             - checkout_code
-            - npm_bower_dependencies:
+            - yarn_install:
                 requires:
                     - checkout_code
             - test:
                 requires:
                     - checkout_code
-                    - npm_bower_dependencies
+                    - yarn_install
