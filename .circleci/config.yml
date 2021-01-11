@@ -1,7 +1,57 @@
 version: 2.1
-orbs:
-  node: circleci/node@3.0.0
+
+npm_cache_key: &npm_cache_key
+    v1-dependency-npm-{{ checksum "package.json" }}
+
+restore_repo: &restore_repo
+    restore_cache:
+      keys:
+        - v1-repo-{{ .Branch }}-{{ .Revision }}
+        - v1-repo-{{ .Branch }}
+        - v1-repo
+
+restore_node_modules: &restore_node_modules
+    restore_cache:
+      keys:
+        - *npm_cache_key
+
+jobs:
+    checkout_code:
+        docker:
+            - image: node:12.16.1
+        steps:
+            - *restore_repo
+            - checkout
+            - save_cache:
+                key: v1-repo-{{ .Branch }}-{{ .Revision }}
+                paths:
+                    - .
+    npm_bower_dependencies:
+        docker:
+            - image: node:12.16.1
+        steps:
+            - *restore_repo
+            - run: yarn
+            - save_cache:
+                key: *npm_cache_key
+                paths:
+                    - /root/projectssss/node_modules
+    test:
+        docker:
+            - image: node:12.16.1
+        steps:
+            - *restore_repo
+            - *restore_node_modules
+            - run: yarn test
+
 workflows:
-  node-tests:
-    jobs:
-      - node/test
+    build_and_test:
+        jobs:
+            - checkout_code
+            - npm_bower_dependencies:
+                requires:
+                    - checkout_code
+            - test:
+                requires:
+                    - checkout_code
+                    - npm_bower_dependencies
