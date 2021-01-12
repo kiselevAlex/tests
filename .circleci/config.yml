@@ -1,4 +1,6 @@
 version: 2.1
+# orbs:
+#     puppeteer: threetreeslight/puppeteer@0.1.2
 
 yarn_cache_key: &yarn_cache_key
     v1-dependency-yarn-{{ checksum "package.json" }}
