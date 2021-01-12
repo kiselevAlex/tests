@@ -1,0 +1,1 @@
+export PATH="/home/kiselev/Projects/learn/chromedriver_linux64:$PATH"
